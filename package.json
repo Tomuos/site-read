@@ -6,14 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
+    
+    "next": "14.2.13",
     "react": "^18",
-    "react-dom": "^18",
-    "next": "14.2.13"
+    "react-dom": "^18"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.13"
   }
