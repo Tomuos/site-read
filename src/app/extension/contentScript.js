@@ -1,3 +1,4 @@
+const splitSpaces = require('./splitSpaces');
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Message received in content script:', request);
@@ -27,7 +28,7 @@ function applySiteRead() {
         // Clean the text by removing excessive whitespace but preserving spaces
         text = text.replace(/\s+/g, ' ').trim();
         
-        const words = text.split(/(\s+)/); // Split by spaces but keep spaces in the array
+        const words = splitSpaces(text); 
 
         const siteReadText = words.map((word) => {
           // Clean up non-alphanumeric characters for processing, excluding spaces
