@@ -1,4 +1,7 @@
-const splitSpaces = require('./splitSpaces');
+const cleanText = require('./lib/cleanText/cleanText');
+const keepSpacing = require('./lib/keepSpacing/keepSpacing');
+const splitSpaces = require('./lib/removeExtraWhitespace/splitSpaces');
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Message received in content script:', request);
@@ -26,13 +29,13 @@ function applySiteRead() {
         let text = node.nodeValue;
 
         // Clean the text by removing excessive whitespace but preserving spaces
-        text = text.replace(/\s+/g, ' ').trim();
+        text = cleanText(text)
         
         const words = splitSpaces(text); 
 
         const siteReadText = words.map((word) => {
           // Clean up non-alphanumeric characters for processing, excluding spaces
-          const cleanWord = word.replace(/[^\w\s]/g, ''); // Excludes punctuation but keeps spaces
+          const cleanWord = keepSpacing; // Excludes punctuation but keeps spaces
 
 
           if (cleanWord.length === 1) {
