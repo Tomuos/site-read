@@ -1,3 +1,7 @@
+const cleanText = require('./lib/cleanText/cleanText');
+const keepSpacing = require('./lib/keepSpacing/keepSpacing');
+const splitSpaces = require('./lib/removeExtraWhitespace/splitSpaces');
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Message received in content script:', request);
@@ -25,13 +29,14 @@ function applySiteRead() {
         let text = node.nodeValue;
 
         // Clean the text by removing excessive whitespace but preserving spaces
-        text = text.replace(/\s+/g, ' ').trim();
+        text = cleanText(text)
         
-        const words = text.split(/(\s+)/); // Split by spaces but keep spaces in the array
+        const words = splitSpaces(text); 
 
         const siteReadText = words.map((word) => {
           // Clean up non-alphanumeric characters for processing, excluding spaces
-          const cleanWord = word.replace(/[^\w]/g, '');
+          const cleanWord = keepSpacing; // Excludes punctuation but keeps spaces
+
 
           if (cleanWord.length === 1) {
             return `<strong>${word}</strong>`; // Bold the entire single-letter word
@@ -54,20 +59,43 @@ function applySiteRead() {
       }
     });
 
-    // Ensure spaces around inline elements like <a> and <em>
-    if (element.tagName === 'a' || element.tagName === 'em') {
+    if (element.tagName === 'A' || element.tagName === 'EM') {
       const prevSibling = element.previousSibling;
       const nextSibling = element.nextSibling;
+    
+
+      if (element.tagName === 'A') {
+        // Ensure space before the link
+        if (!element.previousSibling || element.previousSibling.nodeType !== Node.TEXT_NODE) {
+          element.parentNode.insertBefore(document.createTextNode(' '), element);
+        } else if (!element.previousSibling.nodeValue.endsWith(' ')) {
+          element.previousSibling.nodeValue += ' ';
+        }
       
-      // Add space before the element if it's missing
-      if (prevSibling && prevSibling.nodeType === Node.TEXT_NODE && !prevSibling.nodeValue.endsWith(' ')) {
+        // Ensure space after the link
+        if (!element.nextSibling || element.nextSibling.nodeType !== Node.TEXT_NODE) {
+          element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
+        } else if (!element.nextSibling.nodeValue.startsWith(' ')) {
+          element.nextSibling.nodeValue = ' ' + element.nextSibling.nodeValue;
+        }
+      }
+
+
+      // Ensure space before the element
+      if (!prevSibling || prevSibling.nodeType !== Node.TEXT_NODE) {
+        element.parentNode.insertBefore(document.createTextNode(' '), element);
+      } else if (!prevSibling.nodeValue.endsWith(' ')) {
         prevSibling.nodeValue += ' ';
       }
-      
-      // Add space after the element if it's missing
-      if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE && !nextSibling.nodeValue.startsWith(' ')) {
+    
+      // Ensure space after the element
+      if (!nextSibling || nextSibling.nodeType !== Node.TEXT_NODE) {
+        element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
+      } else if (!nextSibling.nodeValue.startsWith(' ')) {
         nextSibling.nodeValue = ' ' + nextSibling.nodeValue;
       }
+
+
     }
   });
 }
