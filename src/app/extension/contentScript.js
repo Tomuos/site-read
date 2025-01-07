@@ -1,6 +1,7 @@
 const cleanText = require('./lib/cleanText/cleanText');
 const keepSpacing = require('./lib/keepSpacing/keepSpacing');
 const splitSpaces = require('./lib/removeExtraWhitespace/splitSpaces');
+const processWord = require('./lib/processWord/processWord')
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -33,26 +34,14 @@ function applySiteRead() {
         
         const words = splitSpaces(text); 
 
+        
+
         const siteReadText = words.map((word) => {
-          // Clean up non-alphanumeric characters for processing, excluding spaces
-          const cleanWord = keepSpacing; // Excludes punctuation but keeps spaces
-
-
-          if (cleanWord.length === 1) {
-            return `<strong>${word}</strong>`; // Bold the entire single-letter word
-          } else if (cleanWord.length === 2) {
-            return `<strong>${word.charAt(0)}</strong>${word.charAt(1)}`; // Bold the first letter for 2-letter words
-          } else if (cleanWord.length === 3) {
-            return `<strong>${word.substring(0, 2)}</strong>${word.charAt(2)}`; // Bold the first 2 letters for 3-letter words
-          } else if (cleanWord.length > 3) {
-            // Bold half of the word (round up if necessary)
-            const firstLetterCount = Math.ceil(cleanWord.length / 2);
-            return `<strong>${word.substring(0, firstLetterCount)}</strong>${word.substring(firstLetterCount)}
-`;          }
-          return word; // Return word unchanged if it doesn't match the conditions
+          const cleanWord = keepSpacing(word); 
+          return processWord(cleanWord);       
         }).join('');
-
-        // Replace the text node with a span element containing the modified HTML
+        
+        
         const span = document.createElement('span');
         span.innerHTML = siteReadText;
         node.replaceWith(span);
