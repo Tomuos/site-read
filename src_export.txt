@@ -1,0 +1,310 @@
+==== ./src/app/extension/contentScript.js ====
+const cleanText = require('./lib/cleanText/cleanText');
+const keepSpacing = require('./lib/keepSpacing/keepSpacing');
+const splitSpaces = require('./lib/removeExtraWhitespace/splitSpaces');
+const processWord = require('./lib/processWord/processWord')
+
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Message received in content script:', request);
+  if (request.action === 'toggleSiteRead') {
+    isSiteReadEnabled = request.state;
+    console.log('Toggling SiteRead, new state:', isSiteReadEnabled);
+    toggleSiteRead();
+    sendResponse({ status: 'SiteRead toggled' });
+  }
+});
+
+
+let isSiteReadEnabled = true; // Track if the site read is enabled
+
+function applySiteRead() {
+  if (!isSiteReadEnabled) return; // Exit if the effect is toggled off
+
+  // Select paragraphs, list items, articles, divs, and links
+  const elements = document.querySelectorAll('p, li, ol, article, div, a, em');
+
+  elements.forEach((element) => {
+    element.childNodes.forEach((node) => {
+      // Only process text nodes (ignore elements like <strong>, <a>, <em>, etc.)
+      if (node.nodeType === Node.TEXT_NODE) {
+        let text = node.nodeValue;
+
+        // Clean the text by removing excessive whitespace but preserving spaces
+        text = cleanText(text)
+        
+        const words = splitSpaces(text); 
+
+        
+
+        const siteReadText = words.map((word) => {
+          const cleanWord = keepSpacing(word); 
+          return processWord(cleanWord);       
+        }).join('');
+        
+        
+        const span = document.createElement('span');
+        span.innerHTML = siteReadText;
+        node.replaceWith(span);
+      }
+    });
+
+    // if (element.tagName === 'A' || element.tagName === 'EM') {
+    //   const prevSibling = element.previousSibling;
+    //   const nextSibling = element.nextSibling;
+    
+
+    //   if (element.tagName === 'A') {
+    //     // Ensure space before the link
+    //     if (!element.previousSibling || element.previousSibling.nodeType !== Node.TEXT_NODE) {
+    //       element.parentNode.insertBefore(document.createTextNode(' '), element);
+    //     } else if (!element.previousSibling.nodeValue.endsWith(' ')) {
+    //       element.previousSibling.nodeValue += ' ';
+    //     }
+      
+    //     // Ensure space after the link
+    //     if (!element.nextSibling || element.nextSibling.nodeType !== Node.TEXT_NODE) {
+    //       element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
+    //     } else if (!element.nextSibling.nodeValue.startsWith(' ')) {
+    //       element.nextSibling.nodeValue = ' ' + element.nextSibling.nodeValue;
+    //     }
+    //   }
+
+
+    //   // Ensure space before the element
+    //   if (!prevSibling || prevSibling.nodeType !== Node.TEXT_NODE) {
+    //     element.parentNode.insertBefore(document.createTextNode(' '), element);
+    //   } else if (!prevSibling.nodeValue.endsWith(' ')) {
+    //     prevSibling.nodeValue += ' ';
+    //   }
+    
+    //   // Ensure space after the element
+    //   if (!nextSibling || nextSibling.nodeType !== Node.TEXT_NODE) {
+    //     element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
+    //   } else if (!nextSibling.nodeValue.startsWith(' ')) {
+    //     nextSibling.nodeValue = ' ' + nextSibling.nodeValue;
+    //   }
+
+
+    // }
+  });
+}
+
+function toggleSiteRead() {
+  isSiteReadEnabled = !isSiteReadEnabled;
+
+  if (isSiteReadEnabled) {
+    applySiteRead(); // Apply the effect when toggled on
+    observer.observe(document.body, { childList: true, subtree: true }); // Re-observe for changes
+  } else {
+    // Disconnect the observer and remove formatting
+    observer.disconnect();
+    document.querySelectorAll('span').forEach((span) => {
+      if (span.parentNode) {
+        span.replaceWith(...span.childNodes); // Remove the span while preserving its content
+      }
+    });
+  }
+}
+
+// Reapply site read when DOM changes (for dynamic pages)
+const observer = new MutationObserver(() => {
+  if (isSiteReadEnabled) applySiteRead(); // Reapply the site read effect on DOM changes
+});
+
+// Initial call to apply site read on page load
+applySiteRead();
+==== ./src/app/extension/example.test.js ====
+test('adds 1 + 2 to equal 3', () => {
+    expect(1+2).toBe(3);
+  });==== ./src/app/extension/lib/cleanText/cleanText.js ====
+function cleanText (text) {
+return text.replace(/\s+/g, ' ').trim();
+}
+
+module.exports = cleanText;==== ./src/app/extension/lib/cleanText/cleanText.test.js ====
+const cleanText = require('./cleanText');
+
+describe('cleanText', () =>{
+    it("Removes extra spaces by trimming the text", () =>{
+        const text = "        Breaking your code into smaller functions.            Let's see       "
+        const result = cleanText(text)
+
+        console.log("Input Text:", `"${text}"`);
+        console.log("Cleaned Text:", `"${result}"`);
+
+        expect(result).toBe("Breaking your code into smaller functions. Let's see")
+    })
+})==== ./src/app/extension/lib/keepSpacing/keepSpacing.js ====
+// const cleanWord = word.replace(/[^\w\s]/g, '');
+
+function keepSpacing(word) {
+    return word.replace(/[^\w\s]/g, '')
+} 
+
+module.exports = keepSpacing;==== ./src/app/extension/lib/keepSpacing/keepSpacing.test.js ====
+const keepSpacing = require("./keepSpacing")
+
+describe('keepSpacing', () =>{
+    it("keeps spacing between words excludes punctuation", () =>{
+        const word = "don't"
+        const result = keepSpacing(word)
+
+        expect(result).toBe("dont")
+    })
+})==== ./src/app/extension/lib/processWord/processWord.js ====
+const keepSpacing = require('../keepSpacing/keepSpacing')
+
+function processWord(word) {
+
+    const cleanWord = keepSpacing(word); 
+    
+    if (cleanWord.length === 1) {
+        return `<strong>${word}</strong>`
+    }
+    else if (cleanWord.length === 2 ){
+        return `<strong>${word.charAt(0)}</strong>${word.charAt(1)}`;
+    }
+    else if (cleanWord.length === 3){
+        return `<strong>${word.substring(0, 2)}</strong>${word.charAt(2)}`
+    }
+    else if (cleanWord.length > 3){
+        const boldMath = Math.ceil(cleanWord.length / 2);
+        return `<strong>${word.substring(0, boldMath)}</strong>${word.substring(boldMath)}`
+    }
+    
+    return word;
+
+}
+
+module.exports = processWord;==== ./src/app/extension/lib/processWord/processWord.test.js ====
+const processWord = require('./processWord');
+
+describe('processWord', () =>{
+    it("calculates the amount the text will become bold", () =>{
+        const text1 = "I"; // Single-letter word
+        const text2 = "am"; // Two-letter word
+        const text3 = "Neo"; // Three-letter word
+        const text4 = "I know kung-fu!"; // Sentence 
+
+
+        const result1 = processWord(text1);
+        const result2 = processWord(text2);
+        const result3 = processWord(text3);
+        const result4 = text4.split(" ").map(processWord).join(" ");
+
+        console.log("Input text:", text4);
+        console.log("Processed Text:", result4);
+
+       
+        // word math assertions
+        expect(result1).toBe("<strong>I</strong>");
+        expect(result2).toBe("<strong>a</strong>m");
+        expect(result3).toBe("<strong>Ne</strong>o");   
+
+        // Sentence assertion
+        expect(result4).toBe("<strong>I</strong> <strong>kn</strong>ow <strong>kun</strong>g-fu!"); 
+    })
+})==== ./src/app/extension/lib/removeExtraWhitespace/splitSpaces.js ====
+// const words = text.split(/(\s+)/); 
+
+function splitSpaces(text) {
+  return text.split(/(\s+)/);
+}
+
+module.exports = splitSpaces;==== ./src/app/extension/lib/removeExtraWhitespace/splitSpaces.test.js ====
+const splitSpaces = require('./splitSpaces');
+
+describe('splitSpaces', () => {
+    it('should keep spaces between words', () =>{
+        const words = "we don't need roads";
+        const expectedResult = ["we"," ","don't"," ","need"," ","roads" ] 
+        
+        const result = splitSpaces(words)
+
+        expect(result).toEqual(expectedResult)
+
+        
+    })
+
+    it('checks the spaces at the beginning and end', () =>{
+        const words = " we don't need roads ";
+        const expectedResult = [""," ","we"," ","don't"," ","need"," ","roads"," ","" ] 
+        
+        const result = splitSpaces(words)
+
+        expect(result).toEqual(expectedResult)
+    })
+})==== ./src/app/extension/lib/spacedElementsList/spacedElementsList.js ====
+const spacingAroundElement = require('../spacingAroundElement/spacingAroundElement')
+
+function spacingElementsList(root){
+    const anchorElement = root.querySelectorAll('a');
+    const italicElement = root.querySelectorAll('em');
+    const strongElement = root.querySelectorAll('strong');
+    const spanElement = root.querySelectorAll('span');
+
+
+    anchorElement.forEach(element => spacingAroundElement(element));
+    italicElement.forEach(element => spacingAroundElement(element));
+    strongElement.forEach(element => spacingAroundElement(element));
+    spanElement.forEach(element => spacingAroundElement(element));
+
+}
+
+module.exports = spacingElementsList;==== ./src/app/extension/lib/spacedElementsList/spacedElementsList.test.js ====
+==== ./src/app/extension/lib/spacingAroundElement/spacingAroundElement.js ====
+function spacingAroundElement(element) {
+  const prevSibling = element.previousSibling;
+  const nextSibling = element.nextSibling;
+
+  // Ensure space before the element
+  if (!prevSibling || prevSibling.nodeType !== Node.TEXT_NODE) {
+    element.parentNode.insertBefore(document.createTextNode(' '), element);
+  } else if (!prevSibling.nodeValue.endsWith(' ')) {
+    prevSibling.nodeValue += ' ';
+  }
+
+  // Ensure space after the element
+  if (!nextSibling || nextSibling.nodeType !== Node.TEXT_NODE) {
+    element.parentNode.insertBefore(document.createTextNode(' '), nextSibling);
+  } else if (!nextSibling.nodeValue.startsWith(' ')) {
+    nextSibling.nodeValue = ' ' + nextSibling.nodeValue;
+  }
+}
+
+module.exports = spacingAroundElement;
+==== ./src/app/extension/lib/spacingAroundElement/spacingAroundElement.test.js ====
+const spacingAroundElement = require("./spacingAroundElement")
+
+describe('spacingAroundElement', () => {
+  it('should check that spaces are added around tagged elements', () =>{
+      const sentenceLink = "the site to use is <a>www.google.com</a>"
+      const expectedResult = "<strong>th</strong>e <strong>si</strong>te <strong>t</strong>o <strong>us</strong>e <strong>i</strong>s <a>www.google.com</a>"
+
+      const result = spacingAroundElement(sentenceLink)
+
+      expect(result).toEqual(expectedResult)
+  })
+}) ==== ./src/app/extension/popup.js ====
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleSwitch = document.getElementById('toggleSiteRead');
+
+  // Check the initial state from chrome.storage and set the toggle state
+  chrome.storage.sync.get(['siteReadEnabled'], (result) => {
+    toggleSwitch.checked = result.siteReadEnabled || false;
+  });
+
+  toggleSwitch.addEventListener('change', (event) => {
+    const isChecked = event.target.checked;
+
+    // Save the state in chrome.storage
+    chrome.storage.sync.set({ siteReadEnabled: isChecked });
+
+    // Send a message to the content script to toggle SiteRead
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleSiteRead', state: isChecked });
+    });
+  });
+});
+==== ./src/app/extension/style.css ====

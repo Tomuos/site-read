@@ -2,6 +2,7 @@ const cleanText = require('./lib/cleanText/cleanText');
 const keepSpacing = require('./lib/keepSpacing/keepSpacing');
 const splitSpaces = require('./lib/removeExtraWhitespace/splitSpaces');
 const processWord = require('./lib/processWord/processWord')
+const spacingElementsList = require('./lib/spacedElementsList/spacedElementsList')
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -18,76 +19,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 let isSiteReadEnabled = true; // Track if the site read is enabled
 
 function applySiteRead() {
-  if (!isSiteReadEnabled) return; // Exit if the effect is toggled off
+  if (!isSiteReadEnabled) return;
 
-  // Select paragraphs, list items, articles, divs, and links
-  const elements = document.querySelectorAll('p, li, ol, article, div, a, em');
+  // Only target text-related elements
+  const elements = document.querySelectorAll('p, li, a, em, ul, ol');
 
   elements.forEach((element) => {
     element.childNodes.forEach((node) => {
-      // Only process text nodes (ignore elements like <strong>, <a>, <em>, etc.)
       if (node.nodeType === Node.TEXT_NODE) {
         let text = node.nodeValue;
 
-        // Clean the text by removing excessive whitespace but preserving spaces
-        text = cleanText(text)
-        
-        const words = splitSpaces(text); 
+        // Clean and process the text
+        text = cleanText(text);
+        const words = splitSpaces(text);
 
-        
+        const siteReadText = words
+          .map((word) => {
+            const cleanWord = keepSpacing(word);
+            return processWord(cleanWord);
+          })
+          .join('');
 
-        const siteReadText = words.map((word) => {
-          const cleanWord = keepSpacing(word); 
-          return processWord(cleanWord);       
-        }).join('');
-        
-        
         const span = document.createElement('span');
+        span.style.display = 'inline'; // Ensure spans don't disrupt layout
         span.innerHTML = siteReadText;
         node.replaceWith(span);
       }
     });
-
-    if (element.tagName === 'A' || element.tagName === 'EM') {
-      const prevSibling = element.previousSibling;
-      const nextSibling = element.nextSibling;
-    
-
-      if (element.tagName === 'A') {
-        // Ensure space before the link
-        if (!element.previousSibling || element.previousSibling.nodeType !== Node.TEXT_NODE) {
-          element.parentNode.insertBefore(document.createTextNode(' '), element);
-        } else if (!element.previousSibling.nodeValue.endsWith(' ')) {
-          element.previousSibling.nodeValue += ' ';
-        }
-      
-        // Ensure space after the link
-        if (!element.nextSibling || element.nextSibling.nodeType !== Node.TEXT_NODE) {
-          element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
-        } else if (!element.nextSibling.nodeValue.startsWith(' ')) {
-          element.nextSibling.nodeValue = ' ' + element.nextSibling.nodeValue;
-        }
-      }
-
-
-      // Ensure space before the element
-      if (!prevSibling || prevSibling.nodeType !== Node.TEXT_NODE) {
-        element.parentNode.insertBefore(document.createTextNode(' '), element);
-      } else if (!prevSibling.nodeValue.endsWith(' ')) {
-        prevSibling.nodeValue += ' ';
-      }
-    
-      // Ensure space after the element
-      if (!nextSibling || nextSibling.nodeType !== Node.TEXT_NODE) {
-        element.parentNode.insertBefore(document.createTextNode(' '), element.nextSibling);
-      } else if (!nextSibling.nodeValue.startsWith(' ')) {
-        nextSibling.nodeValue = ' ' + nextSibling.nodeValue;
-      }
-
-
-    }
   });
+
+  // Adjust inline element spacing
+  spacingElementsList(document.body);
 }
+
 
 function toggleSiteRead() {
   isSiteReadEnabled = !isSiteReadEnabled;
@@ -103,6 +67,7 @@ function toggleSiteRead() {
         span.replaceWith(...span.childNodes); // Remove the span while preserving its content
       }
     });
+    spacingElementsList(document.body);
   }
 }
 
