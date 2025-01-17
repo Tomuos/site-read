@@ -2,6 +2,8 @@ const keepSpacing = require('../keepSpacing/keepSpacing')
 
 function processWord(word) {
 
+    
+
     const cleanWord = keepSpacing(word); 
     
     if (cleanWord.length === 1) {
