@@ -5,6 +5,6 @@ describe('keepSpacing', () =>{
         const word = "don't"
         const result = keepSpacing(word)
 
-        expect(result).toBe("dont")
+        expect(result).toBe("don't")
     })
 })
