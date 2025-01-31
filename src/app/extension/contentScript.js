@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function applySiteRead() {
   if (!isSiteReadEnabled) return;
 
-  const elements = document.querySelectorAll('p, li, a, em, ul, ol');
+  const elements = document.querySelectorAll('p, li, a, em, ul, ol, div, span');
   elements.forEach((element) => {
     element.childNodes.forEach((node) => {
       if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
