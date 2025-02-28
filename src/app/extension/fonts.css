@@ -1,0 +1,26 @@
+/* Font Selector Dropdown */
+#font-selector {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    font-size: 16px;
+    padding: 5px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Ensure Open-Dyslexic Loads */
+@import url('https://fonts.cdnfonts.com/css/open-dyslexic');
+
+/* Define default styles */
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* ✅ Ensure Open Dyslexic is applied */
+body.open-dyslexic {
+    font-family: 'OpenDyslexic', sans-serif;
+}
