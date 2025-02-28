@@ -13,6 +13,27 @@
         <input type="checkbox" id="toggleSiteRead">
         <span class="slider"></span>
       </label>
+              <div id="boldnessControl">
+                  <button id="decreaseBoldness">-</button>
+                  <span id="boldnessLevel">1</span>
+                  <button id="increaseBoldness">+</button>
+              </div>
+              <label for="font-select">Choose a font:</label>
+              <select id="font-select">
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Comic Sans MS">Comic Sans</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Century Gothic">Century Gothic</option>
+                  <option value="Tahoma">Tahoma</option>
+                  <option value="Calibri">Calibri</option>
+                  <option value="Open Sans">Open Sans</option>
+                  <option value="Dyslexie">Dyslexie</option>
+                  <option value="OpenDyslexic">OpenDyslexic</option>
+              </select>
+              
+              <p id="text">This is a sample text to preview the font.</p>
+              
     </div>
 
     <script src=".././src/app/extension/popup.js"></script>
