@@ -13,6 +13,15 @@
       "128": "public/Site-read-128px.png"
     }
   },
+  "web_accessible_resources": [
+  {
+    "resources": [
+      "src/app/extension/fonts/*.woff2",
+      "src/app/extension/fonts/*.woff"
+    ],
+    "matches": ["<all_urls>"]
+  }
+],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
