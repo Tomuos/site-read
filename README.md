@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Site Read – A Web-Accessible Reading Extension #
+Site Read is a Chrome extension designed to enhance online readability, especially for neurodiverse users. Its primary focus is on improving the reading experience for people with conditions such as ADHD, dyslexia, and visual impairments, by making websites easier to process and navigate.
 
-## Getting Started
+## 🔍 Current Features ##
+Bionic Reading Effect: Automatically highlights parts of words to improve focus and scanning, especially helpful for readers with ADHD or dyslexia.
 
-First, run the development server:
+Applies to common content areas like paragraphs, lists, and articles.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Leaves out links, headings, and already-bolded text to avoid confusion or redundancy.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎯 Upcoming Accessibility Goals ##
+- Dyslexia-Friendly Fonts: Support for fonts like OpenDyslexic and Lexend to reduce reading strain.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- Custom Font Size Control: Let users adjust text size for personal comfort.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Contrast Controls: Improve visibility for users with low vision by offering high-contrast or inverted color options.
 
-## Learn More
+- Color Customization for Color Blindness: Ensure no essential meaning is lost due to color-only distinctions.
 
-To learn more about Next.js, take a look at the following resources:
+- Text Spacing Adjustments: Control over line height and word spacing to ease cognitive load.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Toggle On/Off by Element Type: Choose which types of content (paragraphs, lists, etc.) the extension should affect.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- ARIA Support: Use semantic HTML and ARIA labels to assist screen readers.
 
-## Deploy on Vercel
+## Current demo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Before site read**
+![alt text](./public/before.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**After turning on site read**
+
+![alt text](./public/after.png)
